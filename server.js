@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 app.use(express.urlencoded({ extended: true }));
 app.set('view engine', 'ejs');
@@ -45,8 +46,8 @@ app.get('/delete/:id', async(req,res) => {
     res.redirect("/read");
 })
 
-app.listen(3000 , function() {
-    console.log("its running");
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
 
 
