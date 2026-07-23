@@ -15,37 +15,62 @@ app.get('/',(req,res) => {
     res.render("index");
 })
 
-app.get('/read', async(req,res) => {
-    let users=await userModel.find();
-    res.render("read", {users});
-})
+app.get('/read', async (req, res) => {
+    try {
+        let users = await userModel.find();
+        res.render("read", { users });
+    } catch (err) {
+        console.error("Error reading users:", err);
+        res.status(500).send("Database error: Could not fetch users.");
+    }
+});
 
-app.get('/edit/:id', async(req,res) => {
-    let user=await userModel.findOne();
-    res.render("edit", {user});
-})
+app.get('/edit/:id', async (req, res) => {
+    try {
+        let user = await userModel.findById(req.params.id);
+        if (!user) return res.status(404).send("User not found");
+        res.render("edit", { user });
+    } catch (err) {
+        console.error("Error fetching user for edit:", err);
+        res.status(500).send("Database error: Could not fetch user.");
+    }
+});
 
-app.post('/update/:id', async(req,res) => {
-    let {image,name,email}=req.body;
-    let user=await userModel.findOneAndUpdate({_id: req.params.id},{image,name,email},{new:true});
-    res.redirect("/read");
-})
+app.post('/update/:id', async (req, res) => {
+    try {
+        let { image, name, email } = req.body;
+        await userModel.findOneAndUpdate({ _id: req.params.id }, { image, name, email }, { new: true });
+        res.redirect("/read");
+    } catch (err) {
+        console.error("Error updating user:", err);
+        res.status(500).send("Database error: Could not update user.");
+    }
+});
 
-app.post('/create', async(req,res) => {
-    let {name,email,image}=req.body;
+app.post('/create', async (req, res) => {
+    try {
+        let { name, email, image } = req.body;
+        await userModel.create({
+            name: name,
+            email: email,
+            image: image
+        });
+        res.redirect("/read");
+    } catch (err) {
+        console.error("Error creating user:", err);
+        res.status(500).send("Database error: Could not create user.");
+    }
+});
 
-    let createduser=await userModel.create({
-        name: name,
-        email: email,
-        image: image
-    })
-    res.redirect("/read");
-})
-
-app.get('/delete/:id', async(req,res) => {
-    let users=await userModel.findOneAndDelete({_id: req.params.id});
-    res.redirect("/read");
-})
+app.get('/delete/:id', async (req, res) => {
+    try {
+        await userModel.findOneAndDelete({ _id: req.params.id });
+        res.redirect("/read");
+    } catch (err) {
+        console.error("Error deleting user:", err);
+        res.status(500).send("Database error: Could not delete user.");
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
